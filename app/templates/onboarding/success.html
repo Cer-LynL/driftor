@@ -1,0 +1,97 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-8 text-center">
+            <div class="mb-5">
+                <i class="fas fa-check-circle text-success" style="font-size: 5rem;"></i>
+                <h1 class="mt-4 mb-3">Setup Complete!</h1>
+                <p class="lead">Your Developer Workflow Bot is ready to help you analyze Jira tickets and provide intelligent suggestions.</p>
+            </div>
+
+            <div class="row">
+                <div class="col-md-6 mb-4">
+                    <div class="card h-100">
+                        <div class="card-body">
+                            <h5 class="card-title">
+                                <i class="fab fa-microsoft me-2 text-primary"></i>Teams Bot
+                            </h5>
+                            <p class="card-text">Configure your Microsoft Teams bot with this endpoint:</p>
+                            <div class="bg-light p-2 rounded mb-3">
+                                <code>{{ teams_bot_endpoint }}</code>
+                            </div>
+                            <small class="text-muted">Add this URL to your bot configuration in Microsoft Teams.</small>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-md-6 mb-4">
+                    <div class="card h-100">
+                        <div class="card-body">
+                            <h5 class="card-title">
+                                <i class="fab fa-jira me-2 text-blue"></i>Jira Webhook
+                            </h5>
+                            <p class="card-text">Set up this webhook in your Jira project:</p>
+                            <div class="bg-light p-2 rounded mb-3">
+                                <code>{{ jira_webhook_endpoint }}</code>
+                            </div>
+                            <small class="text-muted">Configure for "Issue assigned" events.</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="mt-5">
+                <h3>What Happens Next?</h3>
+                <div class="row mt-4">
+                    <div class="col-md-4 mb-3">
+                        <div class="text-center">
+                            <i class="fas fa-bell fa-2x text-primary mb-3"></i>
+                            <h5>Automatic Detection</h5>
+                            <p>When a bug ticket is assigned in Jira, the bot will automatically start analyzing it.</p>
+                        </div>
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <div class="text-center">
+                            <i class="fas fa-brain fa-2x text-success mb-3"></i>
+                            <h5>AI Analysis</h5>
+                            <p>The bot will search for similar issues, find relevant documentation, and analyze your code.</p>
+                        </div>
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <div class="text-center">
+                            <i class="fas fa-comment fa-2x text-info mb-3"></i>
+                            <h5>Teams Notification</h5>
+                            <p>You'll receive a comprehensive analysis and suggestions directly in Microsoft Teams.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="mt-5">
+                <div class="alert alert-info" role="alert">
+                    <h6 class="alert-heading">
+                        <i class="fas fa-lightbulb me-2"></i>Pro Tips
+                    </h6>
+                    <ul class="mb-0 text-start">
+                        <li>Make sure your Jira tickets have clear titles and descriptions for better analysis</li>
+                        <li>Label your bug tickets with "Bug" type for automatic processing</li>
+                        <li>You can ask the bot to elaborate on any analysis by typing "elaborate [TICKET-KEY]" in Teams</li>
+                        <li>The bot learns from your codebase over time to provide better suggestions</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="mt-4">
+                <a href="/docs" class="btn btn-primary me-3">
+                    <i class="fas fa-book me-2"></i>View Documentation
+                </a>
+                <a href="/onboarding/" class="btn btn-outline-secondary">
+                    <i class="fas fa-home me-2"></i>Back to Home
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,109 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="hero-section">
+    <div class="container text-center">
+        <h1 class="display-4 mb-4">
+            <i class="fas fa-robot me-3"></i>Developer Workflow Bot
+        </h1>
+        <p class="lead mb-4">
+            Automate your development workflow with intelligent Jira ticket analysis, 
+            similar issue detection, and AI-powered code suggestions.
+        </p>
+        <div class="row justify-content-center mt-5">
+            <div class="col-md-8">
+                <div class="row">
+                    <div class="col-md-4 mb-3">
+                        <div class="text-center">
+                            <i class="fas fa-search fa-3x mb-3"></i>
+                            <h5>Smart Analysis</h5>
+                            <p>Find similar issues and relevant documentation automatically</p>
+                        </div>
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <div class="text-center">
+                            <i class="fas fa-code fa-3x mb-3"></i>
+                            <h5>Code Insights</h5>
+                            <p>Get AI-powered suggestions for fixing bugs in your codebase</p>
+                        </div>
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <div class="text-center">
+                            <i class="fab fa-microsoft fa-3x mb-3"></i>
+                            <h5>Teams Integration</h5>
+                            <p>Receive notifications and interact directly in Microsoft Teams</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="mt-4">
+            <a href="/onboarding/setup" class="btn btn-light btn-lg">
+                <i class="fas fa-rocket me-2"></i>Get Started
+            </a>
+        </div>
+    </div>
+</div>
+
+<div class="container py-5">
+    <div class="row">
+        <div class="col-lg-8 mx-auto">
+            <h2 class="text-center mb-5">How It Works</h2>
+            <div class="row">
+                <div class="col-md-6 mb-4">
+                    <div class="d-flex">
+                        <div class="flex-shrink-0">
+                            <div class="bg-primary text-white rounded-circle d-flex align-items-center justify-content-center" style="width: 50px; height: 50px;">
+                                <span class="fw-bold">1</span>
+                            </div>
+                        </div>
+                        <div class="flex-grow-1 ms-3">
+                            <h5>Connect Your Tools</h5>
+                            <p>Link your Jira, Confluence, and Git repositories to the bot.</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-6 mb-4">
+                    <div class="d-flex">
+                        <div class="flex-shrink-0">
+                            <div class="bg-primary text-white rounded-circle d-flex align-items-center justify-content-center" style="width: 50px; height: 50px;">
+                                <span class="fw-bold">2</span>
+                            </div>
+                        </div>
+                        <div class="flex-grow-1 ms-3">
+                            <h5>Automatic Analysis</h5>
+                            <p>When a bug ticket is assigned, the bot automatically analyzes it.</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-6 mb-4">
+                    <div class="d-flex">
+                        <div class="flex-shrink-0">
+                            <div class="bg-primary text-white rounded-circle d-flex align-items-center justify-content-center" style="width: 50px; height: 50px;">
+                                <span class="fw-bold">3</span>
+                            </div>
+                        </div>
+                        <div class="flex-grow-1 ms-3">
+                            <h5>Smart Suggestions</h5>
+                            <p>Get similar issues, documentation links, and code fix suggestions.</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-6 mb-4">
+                    <div class="d-flex">
+                        <div class="flex-shrink-0">
+                            <div class="bg-primary text-white rounded-circle d-flex align-items-center justify-content-center" style="width: 50px; height: 50px;">
+                                <span class="fw-bold">4</span>
+                            </div>
+                        </div>
+                        <div class="flex-grow-1 ms-3">
+                            <h5>Teams Notification</h5>
+                            <p>Receive a comprehensive analysis in Microsoft Teams.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

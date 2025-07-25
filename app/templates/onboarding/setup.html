@@ -1,0 +1,207 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-10">
+            <h2 class="text-center mb-5">
+                <i class="fas fa-cog me-2"></i>Setup Integrations
+            </h2>
+            
+            {% if request.query_params.get('success') %}
+            <div class="alert alert-success" role="alert">
+                <i class="fas fa-check-circle me-2"></i>Integration successfully configured!
+            </div>
+            {% endif %}
+            
+            {% if request.query_params.get('error') %}
+            <div class="alert alert-danger" role="alert">
+                <i class="fas fa-exclamation-circle me-2"></i>Error: {{ request.query_params.get('error') }}
+            </div>
+            {% endif %}
+
+            <div class="row">
+                <!-- Jira Integration -->
+                <div class="col-md-4 mb-4">
+                    <div class="card integration-card h-100">
+                        <div class="card-body text-center">
+                            <i class="fab fa-jira fa-3x mb-3 text-primary"></i>
+                            <h5 class="card-title">Jira</h5>
+                            <p class="card-text">Connect to your Jira instance to receive ticket notifications.</p>
+                            {% if integration_status.jira %}
+                                <i class="fas fa-check-circle status-connected fs-4"></i>
+                                <p class="text-success mt-2">Connected</p>
+                            {% else %}
+                                <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#jiraModal">
+                                    <i class="fas fa-plug me-2"></i>Connect
+                                </button>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Confluence Integration -->
+                <div class="col-md-4 mb-4">
+                    <div class="card integration-card h-100">
+                        <div class="card-body text-center">
+                            <i class="fab fa-confluence fa-3x mb-3 text-info"></i>
+                            <h5 class="card-title">Confluence</h5>
+                            <p class="card-text">Link documentation for automatic relevant content discovery.</p>
+                            {% if integration_status.confluence %}
+                                <i class="fas fa-check-circle status-connected fs-4"></i>
+                                <p class="text-success mt-2">Connected</p>
+                            {% else %}
+                                <button class="btn btn-info" data-bs-toggle="modal" data-bs-target="#confluenceModal">
+                                    <i class="fas fa-plug me-2"></i>Connect
+                                </button>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+
+                <!-- GitHub Integration -->
+                <div class="col-md-4 mb-4">
+                    <div class="card integration-card h-100">
+                        <div class="card-body text-center">
+                            <i class="fab fa-github fa-3x mb-3 text-dark"></i>
+                            <h5 class="card-title">GitHub</h5>
+                            <p class="card-text">Connect repositories for AI-powered code analysis.</p>
+                            {% if integration_status.github %}
+                                <i class="fas fa-check-circle status-connected fs-4"></i>
+                                <p class="text-success mt-2">Connected</p>
+                            {% else %}
+                                <button class="btn btn-dark" data-bs-toggle="modal" data-bs-target="#githubModal">
+                                    <i class="fas fa-plug me-2"></i>Connect
+                                </button>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="text-center mt-5">
+                {% if integration_status.jira and integration_status.confluence and integration_status.github %}
+                    <a href="/onboarding/success" class="btn btn-success btn-lg">
+                        <i class="fas fa-check me-2"></i>Complete Setup
+                    </a>
+                {% else %}
+                    <p class="text-muted">Connect at least Jira and one code repository to continue.</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Jira Modal -->
+<div class="modal fade" id="jiraModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Connect Jira</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form method="post" action="/onboarding/manual-setup">
+                <div class="modal-body">
+                    <input type="hidden" name="integration_type" value="jira">
+                    <div class="mb-3">
+                        <label for="jira-name" class="form-label">Integration Name</label>
+                        <input type="text" class="form-control" id="jira-name" name="name" value="My Jira" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="jira-url" class="form-label">Jira URL</label>
+                        <input type="url" class="form-control" id="jira-url" name="base_url" placeholder="https://your-domain.atlassian.net" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="jira-username" class="form-label">Email</label>
+                        <input type="email" class="form-control" id="jira-username" name="username" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="jira-token" class="form-label">API Token</label>
+                        <input type="password" class="form-control" id="jira-token" name="api_token" required>
+                        <div class="form-text">Create an API token in your Atlassian account settings.</div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Connect</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Confluence Modal -->
+<div class="modal fade" id="confluenceModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Connect Confluence</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form method="post" action="/onboarding/manual-setup">
+                <div class="modal-body">
+                    <input type="hidden" name="integration_type" value="confluence">
+                    <div class="mb-3">
+                        <label for="confluence-name" class="form-label">Integration Name</label>
+                        <input type="text" class="form-control" id="confluence-name" name="name" value="My Confluence" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="confluence-url" class="form-label">Confluence URL</label>
+                        <input type="url" class="form-control" id="confluence-url" name="base_url" placeholder="https://your-domain.atlassian.net/wiki" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="confluence-username" class="form-label">Email</label>
+                        <input type="email" class="form-control" id="confluence-username" name="username" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="confluence-token" class="form-label">API Token</label>
+                        <input type="password" class="form-control" id="confluence-token" name="api_token" required>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-info">Connect</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- GitHub Modal -->
+<div class="modal fade" id="githubModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Connect GitHub</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form method="post" action="/onboarding/manual-setup">
+                <div class="modal-body">
+                    <input type="hidden" name="integration_type" value="github">
+                    <div class="mb-3">
+                        <label for="github-name" class="form-label">Integration Name</label>
+                        <input type="text" class="form-control" id="github-name" name="name" value="My GitHub" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="github-url" class="form-label">GitHub URL</label>
+                        <input type="url" class="form-control" id="github-url" name="base_url" value="https://api.github.com" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="github-username" class="form-label">Username</label>
+                        <input type="text" class="form-control" id="github-username" name="username" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="github-token" class="form-label">Personal Access Token</label>
+                        <input type="password" class="form-control" id="github-token" name="api_token" required>
+                        <div class="form-text">Create a personal access token in GitHub settings with repo permissions.</div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-dark">Connect</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
