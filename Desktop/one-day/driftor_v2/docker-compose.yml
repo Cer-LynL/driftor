@@ -1,0 +1,188 @@
+version: '3.8'
+
+services:
+  # Application
+  driftor-api:
+    build: .
+    ports:
+      - "8000:8000"
+    environment:
+      - DATABASE_URL=postgresql+asyncpg://driftor:${DB_PASSWORD:-secure_password}@postgres:5432/driftor
+      - REDIS_URL=redis://redis:6379/0
+      - SECRET_KEY=${SECRET_KEY:-change_me_in_production}
+      - ENCRYPTION_KEY=${ENCRYPTION_KEY:-generate_me_in_production}
+      - ENVIRONMENT=development
+    depends_on:
+      - postgres
+      - redis
+      - vault
+    volumes:
+      - ./logs:/app/logs
+      - vault-secrets:/app/secrets:ro
+    networks:
+      - driftor-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # Celery Worker
+  driftor-worker:
+    build: .
+    command: celery -A driftor.core.celery worker --loglevel=info --concurrency=4
+    environment:
+      - DATABASE_URL=postgresql+asyncpg://driftor:${DB_PASSWORD:-secure_password}@postgres:5432/driftor
+      - REDIS_URL=redis://redis:6379/0
+      - SECRET_KEY=${SECRET_KEY:-change_me_in_production}
+      - ENCRYPTION_KEY=${ENCRYPTION_KEY:-generate_me_in_production}
+      - ENVIRONMENT=development
+    depends_on:
+      - postgres
+      - redis
+      - vault
+    volumes:
+      - ./logs:/app/logs
+      - vault-secrets:/app/secrets:ro
+    networks:
+      - driftor-network
+    restart: unless-stopped
+
+  # Database with encryption
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      - POSTGRES_DB=driftor
+      - POSTGRES_USER=driftor
+      - POSTGRES_PASSWORD=${DB_PASSWORD:-secure_password}
+      - POSTGRES_INITDB_ARGS=--auth-host=scram-sha-256
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+      - ./database/init.sql:/docker-entrypoint-initdb.d/init.sql:ro
+    networks:
+      - driftor-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U driftor -d driftor"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Redis for caching and queues
+  redis:
+    image: redis:7-alpine
+    command: redis-server --requirepass ${REDIS_PASSWORD:-secure_redis_password} --appendonly yes
+    volumes:
+      - redis-data:/data
+    networks:
+      - driftor-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "redis-cli", "--raw", "incr", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+
+  # HashiCorp Vault for secrets management
+  vault:
+    image: vault:1.15
+    cap_add:
+      - IPC_LOCK
+    environment:
+      - VAULT_DEV_ROOT_TOKEN_ID=${VAULT_ROOT_TOKEN:-dev-root-token}
+      - VAULT_DEV_LISTEN_ADDRESS=0.0.0.0:8200
+    ports:
+      - "8200:8200"
+    volumes:
+      - vault-data:/vault/data
+      - vault-secrets:/vault/secrets
+      - ./vault/policies:/vault/policies:ro
+    networks:
+      - driftor-network
+    restart: unless-stopped
+
+  # Ollama for local LLM
+  ollama:
+    image: ollama/ollama:latest
+    ports:
+      - "11434:11434"
+    volumes:
+      - ollama-data:/root/.ollama
+    networks:
+      - driftor-network
+    restart: unless-stopped
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [gpu]
+
+  # ChromaDB for vector storage
+  chromadb:
+    image: chromadb/chroma:latest
+    environment:
+      - CHROMA_SERVER_AUTH_CREDENTIALS_PROVIDER=chromadb.auth.token.TokenAuthCredentialsProvider
+      - CHROMA_SERVER_AUTH_CREDENTIALS=${CHROMA_AUTH_TOKEN:-secure_chroma_token}
+      - CHROMA_SERVER_AUTH_TOKEN_TRANSPORT_HEADER=X-Chroma-Token
+    ports:
+      - "8200:8000"
+    volumes:
+      - chromadb-data:/chroma/chroma
+    networks:
+      - driftor-network
+    restart: unless-stopped
+
+  # Prometheus for monitoring
+  prometheus:
+    image: prom/prometheus:latest
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./monitoring/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - prometheus-data:/prometheus
+    networks:
+      - driftor-network
+    restart: unless-stopped
+
+  # Grafana for dashboards
+  grafana:
+    image: grafana/grafana:latest
+    ports:
+      - "3000:3000"
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=${GRAFANA_PASSWORD:-admin}
+    volumes:
+      - grafana-data:/var/lib/grafana
+      - ./monitoring/grafana/dashboards:/etc/grafana/provisioning/dashboards:ro
+      - ./monitoring/grafana/datasources:/etc/grafana/provisioning/datasources:ro
+    networks:
+      - driftor-network
+    restart: unless-stopped
+
+volumes:
+  postgres-data:
+    driver: local
+  redis-data:
+    driver: local
+  vault-data:
+    driver: local
+  vault-secrets:
+    driver: local
+  ollama-data:
+    driver: local
+  chromadb-data:
+    driver: local
+  prometheus-data:
+    driver: local
+  grafana-data:
+    driver: local
+
+networks:
+  driftor-network:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.20.0.0/16
