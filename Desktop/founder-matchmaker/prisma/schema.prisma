@@ -1,0 +1,161 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+model User {
+  id           String   @id @default(uuid())
+  email        String   @unique
+  name         String?
+  imageUrl     String?
+  headline     String?
+  bio          String?
+  location     String?
+  timezone     String?
+  availability Int?      // 0-100
+  equityPref   String?
+  remotePref   String?   // Remote | Hybrid | Onsite
+  languages    String[]  @default([])
+  links        Json?
+  whatsapp     String?   // WhatsApp number for contact
+  linkedin     String?   // LinkedIn profile URL
+  github       String?   // GitHub profile URL
+  role         String    @default("user") // 'user' | 'admin'
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+
+  offers     Offer[]
+  lookingFor LookingFor[]
+  skills     SkillOnUser[]
+  startups   Startup[]
+  likesSent  Like[]   @relation("LikesSent")
+  likesRecv  Like[]   @relation("LikesRecv")
+  matchesA   Match[]  @relation("MatchesA")
+  matchesB   Match[]  @relation("MatchesB")
+  messages   Message[]
+  reports    Report[]  @relation("ReportsFiled")
+
+  @@map("users")
+}
+
+model Skill {
+  id    String  @id @default(uuid())
+  name  String  @unique
+  users SkillOnUser[]
+
+  @@map("skills")
+}
+
+model SkillOnUser {
+  id     String @id @default(uuid())
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId String
+  skill  Skill  @relation(fields: [skillId], references: [id], onDelete: Cascade)
+  skillId String
+
+  @@unique([userId, skillId])
+  @@map("skill_on_user")
+}
+
+model Offer {
+  id     String @id @default(uuid())
+  tag    String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId String
+
+  @@map("offers")
+}
+
+model LookingFor {
+  id     String @id @default(uuid())
+  tag    String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId String
+
+  @@map("looking_for")
+}
+
+model Startup {
+  id          String   @id @default(uuid())
+  owner       User     @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+  ownerId     String
+  name        String
+  oneLiner    String
+  stage       String   // idea | prototype | MVP | beta | revenue | growth
+  markets     String[]
+  problem     String?
+  solution    String?
+  plan        String?
+  logoUrl     String?  // Logo image URL
+  imageUrls   String[] @default([]) // Additional images
+  websiteUrl  String?  // Website URL
+  demoUrl     String?  // Demo/prototype URL
+  deckUrl     String?  // Pitch deck URL
+  teamSize    Int?
+  hiringNeeds String[]
+  keywords    String[]
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@map("startups")
+}
+
+model Like {
+  id        String   @id @default(uuid())
+  from      User     @relation("LikesSent", fields: [fromId], references: [id], onDelete: Cascade)
+  fromId    String
+  to        User     @relation("LikesRecv", fields: [toId], references: [id], onDelete: Cascade)
+  toId      String
+  message   String?  // Optional greeting message
+  createdAt DateTime @default(now())
+
+  @@unique([fromId, toId])
+  @@map("likes")
+}
+
+model Match {
+  id        String   @id @default(uuid())
+  userA     User     @relation("MatchesA", fields: [userAId], references: [id], onDelete: Cascade)
+  userAId   String
+  userB     User     @relation("MatchesB", fields: [userBId], references: [id], onDelete: Cascade)
+  userBId   String
+  createdAt DateTime @default(now())
+  active    Boolean  @default(true)
+  messages  Message[]
+
+  @@unique([userAId, userBId])
+  @@map("matches")
+}
+
+model Message {
+  id        String   @id @default(uuid())
+  match     Match    @relation(fields: [matchId], references: [id], onDelete: Cascade)
+  matchId   String
+  sender    User     @relation(fields: [senderId], references: [id], onDelete: Cascade)
+  senderId  String
+  body      String
+  readAt    DateTime?
+  createdAt DateTime @default(now())
+
+  @@index([matchId, createdAt])
+  @@map("messages")
+}
+
+model Report {
+  id          String   @id @default(uuid())
+  reporter    User     @relation("ReportsFiled", fields: [reporterId], references: [id], onDelete: Cascade)
+  reporterId  String
+  targetUserId String
+  reason      String
+  createdAt   DateTime @default(now())
+
+  @@map("reports")
+}
