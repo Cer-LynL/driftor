@@ -11,7 +11,8 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Badge } from '@/components/ui/badge'
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem } from '@/components/ui/command'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
-import { Check, Plus, X } from 'lucide-react'
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog'
+import { Check, Plus, X, Trash2, AlertTriangle } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { useRouter } from 'next/navigation'
 import { toast } from 'sonner'
@@ -71,6 +72,9 @@ interface ProfileData {
 
 export default function EditProfilePage() {
   const [isLoading, setIsLoading] = useState(false)
+  const [isDeleting, setIsDeleting] = useState(false)
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false)
+  const [deleteConfirmation, setDeleteConfirmation] = useState('')
   const [profileData, setProfileData] = useState<ProfileData>({
     name: '',
     email: '',
@@ -230,6 +234,38 @@ export default function EditProfilePage() {
       ...prev,
       lookingFor: prev.lookingFor.filter(l => l !== lookingFor)
     }))
+  }
+
+  const handleDeleteAccount = async () => {
+    if (deleteConfirmation !== 'DELETE') {
+      toast.error('Please type DELETE to confirm account deletion')
+      return
+    }
+
+    setIsDeleting(true)
+    try {
+      const response = await fetch('/api/delete-account', {
+        method: 'DELETE'
+      })
+
+      if (response.ok) {
+        toast.success('Account deleted successfully. You will be redirected to the homepage.')
+        // Small delay to show the success message before redirect
+        setTimeout(() => {
+          router.push('/')
+        }, 2000)
+      } else {
+        const errorData = await response.json()
+        toast.error(errorData.error || 'Failed to delete account')
+      }
+    } catch (error) {
+      console.error('Error deleting account:', error)
+      toast.error('Failed to delete account')
+    } finally {
+      setIsDeleting(false)
+      setShowDeleteDialog(false)
+      setDeleteConfirmation('')
+    }
   }
 
   return (
@@ -595,7 +631,97 @@ export default function EditProfilePage() {
             </form>
           </CardContent>
         </Card>
+
+        {/* Danger Zone */}
+        <Card className="border-red-200 bg-red-50">
+          <CardHeader>
+            <div className="flex items-center gap-2">
+              <AlertTriangle className="h-5 w-5 text-red-600" />
+              <CardTitle className="text-red-900">Danger Zone</CardTitle>
+            </div>
+            <CardDescription className="text-red-700">
+              Permanently delete your account and all associated data. This action cannot be undone.
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <Button
+              variant="destructive"
+              onClick={() => setShowDeleteDialog(true)}
+              className="w-full sm:w-auto"
+            >
+              <Trash2 className="h-4 w-4 mr-2" />
+              Delete Account
+            </Button>
+          </CardContent>
+        </Card>
       </div>
+
+      {/* Delete Account Confirmation Dialog */}
+      <Dialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2 text-red-900">
+              <AlertTriangle className="h-5 w-5 text-red-600" />
+              Delete Account
+            </DialogTitle>
+            <DialogDescription className="text-red-700">
+              This action will permanently delete your account and all associated data including:
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div className="bg-red-100 p-4 rounded-lg">
+              <ul className="text-sm text-red-800 space-y-1">
+                <li>• Your profile and personal information</li>
+                <li>• All your startups and startup data</li>
+                <li>• Your matches and conversations</li>
+                <li>• All likes sent and received</li>
+                <li>• Your account from both the database and authentication system</li>
+              </ul>
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="deleteConfirmation" className="text-sm font-medium text-red-900">
+                Type <strong>DELETE</strong> to confirm:
+              </Label>
+              <Input
+                id="deleteConfirmation"
+                value={deleteConfirmation}
+                onChange={(e) => setDeleteConfirmation(e.target.value)}
+                placeholder="DELETE"
+                className="border-red-300 focus:border-red-500 focus:ring-red-500"
+              />
+            </div>
+          </div>
+          <DialogFooter className="flex-col sm:flex-row gap-2">
+            <Button
+              variant="outline"
+              onClick={() => {
+                setShowDeleteDialog(false)
+                setDeleteConfirmation('')
+              }}
+              disabled={isDeleting}
+            >
+              Cancel
+            </Button>
+            <Button
+              variant="destructive"
+              onClick={handleDeleteAccount}
+              disabled={isDeleting || deleteConfirmation !== 'DELETE'}
+            >
+              {isDeleting ? (
+                <>
+                  <div className="w-4 h-4 animate-spin rounded-full border-2 border-white border-t-transparent mr-2" />
+                  Deleting Account...
+                </>
+              ) : (
+                <>
+                  <Trash2 className="w-4 h-4 mr-2" />
+                  Delete Account Permanently
+                </>
+              )}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   )
 }
